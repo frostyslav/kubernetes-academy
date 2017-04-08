@@ -8,15 +8,28 @@ coreos:
   - name: etcd3.service
     command: start
     enable: true
-    content: "[Unit]\nDescription=etcd3 service\nWants=network-online.target\nAfter=network-online.target\n\n[Service]\nRestart=on-failure\nRestartSec=5s\nTimeoutSec=3m
-      \    \nExecStartPre=/usr/bin/mkdir -p /opt/bin\nExecStartPre=/usr/bin/mkdir
-      -p /opt/etcd/data\nExecStartPre=/usr/bin/wget -O /opt/etcd-v3.1.5-linux-amd64.tar.gz
-      https://github.com/coreos/etcd/releases/download/v3.1.5/etcd-v3.1.5-linux-amd64.tar.gz\nExecStartPre=/usr/bin/tar
-      zxf /opt/etcd-v3.1.5-linux-amd64.tar.gz -C /opt/\nExecStartPre=/usr/bin/cp /opt/etcd-v3.1.5-linux-amd64/etcd
-      /opt/bin\nExecStartPre=/usr/bin/cp /opt/etcd-v3.1.5-linux-amd64/etcdctl /opt/bin\nExecStart=/opt/bin/etcd
-      --advertise-client-urls=http://$private_ipv4:2379 \\\n--discovery=https://discovery.etcd.io/15a0386a814451765d92ce596e1d19dc
-      \\\n--initial-advertise-peer-urls=http://$private_ipv4:2380 \\\n--listen-client-urls=http://0.0.0.0:2379,http://0.0.0.0:4001
-      \\\n--listen-peer-urls=http://$private_ipv4:2380,http://$private_ipv4:7001 \\\n--data-dir=/opt/etcd/data\n"
+    content: |
+      [Unit]
+      Description=etcd3 service
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Restart=on-failure
+      RestartSec=5s
+      TimeoutSec=3m     
+      ExecStartPre=/usr/bin/mkdir -p /opt/bin
+      ExecStartPre=/usr/bin/mkdir -p /opt/etcd/data
+      ExecStartPre=/usr/bin/wget -O /opt/etcd-v3.1.5-linux-amd64.tar.gz https://github.com/coreos/etcd/releases/download/v3.1.5/etcd-v3.1.5-linux-amd64.tar.gz
+      ExecStartPre=/usr/bin/tar zxf /opt/etcd-v3.1.5-linux-amd64.tar.gz -C /opt/
+      ExecStartPre=/usr/bin/cp /opt/etcd-v3.1.5-linux-amd64/etcd /opt/bin
+      ExecStartPre=/usr/bin/cp /opt/etcd-v3.1.5-linux-amd64/etcdctl /opt/bin
+      ExecStart=/opt/bin/etcd --advertise-client-urls=http://$private_ipv4:2379 \
+      --discovery=https://discovery.etcd.io/00a1c1f456d383dba1a2b542fa3c6866 \
+      --initial-advertise-peer-urls=http://$private_ipv4:2380 \
+      --listen-client-urls=http://0.0.0.0:2379,http://0.0.0.0:4001 \
+      --listen-peer-urls=http://$private_ipv4:2380,http://$private_ipv4:7001 \
+      --data-dir=/opt/etcd/data
   - name: docker.service
     drop-ins:
     - name: 40-flannel.conf
@@ -226,7 +239,7 @@ write_files:
         - --service-account-key-file=/etc/kubernetes/ssl/service-account.pem
         - --token-auth-file=/etc/kubernetes/auth/token.csv
         - --apiserver-count=5
-        - --runtime-config=extensions/v1beta1=true,extensions/v1beta1/networkpolicies=true
+        - --runtime-config=extensions/v1beta1=true,extensions/v1beta1/networkpolicies=true,extensions/batch/v2alpha1=true
         ports:
         - name: https
           containerPort: 443
@@ -287,12 +300,6 @@ write_files:
         - --node-monitor-period=5s
         - --service-account-private-key-file=/etc/kubernetes/ssl/service-account-key.pem
         - --root-ca-file=/etc/kubernetes/ssl/ca.pem
-        - --leader-elect=true
-        - --leader-elect-lease-duration=15s
-        - --leader-elect-renew-deadline=10s
-        - --leader-elect-retry-period=2s
-        - --node-monitor-grace-period=40s
-        - --node-monitor-period=5s
         livenessProbe:
           httpGet:
             host: 127.0.0.1
