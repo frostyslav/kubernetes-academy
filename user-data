@@ -240,7 +240,7 @@ write_files:
         - --service-account-key-file=/etc/kubernetes/ssl/service-account.pem
         - --token-auth-file=/etc/kubernetes/auth/token.csv
         - --apiserver-count=5
-        - --runtime-config=extensions/v1beta1=true,extensions/v1beta1/networkpolicies=true,extensions/batch/v2alpha1=true
+        - --runtime-config=extensions/v1beta1=true,extensions/v1beta1/networkpolicies=true,batch/v2alpha1=true
         ports:
         - name: https
           containerPort: 443
